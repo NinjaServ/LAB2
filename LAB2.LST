@@ -1,0 +1,433 @@
+Turbo Assembler	 Version 3.1	    07/05/02 13:53:36	    Page 1
+lab2.ASM
+
+
+
+      1				     Title Lab 2: Adding 3 Numbers
+      2
+      3				     ;	     *************************************************
+      4				     ;	     * Name: Seth Urbach							     *
+      5				     ;	     * Lab Exercise: Lab #2						     *
+      6				     ;	     * Date Started: July 1, 2002				     *
+      7				     ;	     * Date Last Modified: July	2, 2002	- 10:50	PM   *
+      8				     ;	     * Date Due: July 5, 2002						     *
+      9				     ;	     *											    +
+     10				     *
+     11				     ;	     * Program Description:						     *
+     12				     ;	     *	     This lab prompts the user to enter	in 3	     *
+     13				     ;	     *	     numbers. The Program then adds those three	     *
+     14				     ;	     *	     numbers together and displays the sum to	     *
+     15				     ;	 *   the user.									     *
+     16				     ;	     *************************************************
+     17
+     18	0000			     .model small
+     19	      =000F			     LEN	     equ     15
+     20	      =000D			     CR		     equ     0dh
+     21	      =000A			     LF		     equ     0ah
+     22	      =	[bp+4]			     string  EQU  [bp+4]
+     23	      =	[bp+6]			     number  EQU  [bp+6]
+     24
+     25	0000			     .stack 100h
+     26
+     27	0000			     .data
+     28	0000  0000			     sum	     dw	     00h
+     29	0002  45 6E 74 65 72 20	69+	     prompt  db	     "Enter in a number: " ,CR,	LF, 0
+     30	      6E 20 61 20 6E 75	6D+
+     31	      62 65 72 3A 20 0D	0A+
+     32	      00
+     33	0018  59 6F 75 20 61 72	65+	     msg1    db	     "You are adding together 3	Numbers. Press return after each number	is  +
+     34	      20 61 64 64 69 6E	67+  entered." ,CR, LF,	0
+     35	      20 74 6F 67 65 74	68+
+     36	      65 72 20 33 20 4E	75+
+     37	      6D 62 65 72 73 2E	20+
+     38	      50 72 65 73 73 20	72+
+     39	      65 74 75 72 6E 20	61+
+     40	      66 74 65 72 20 65	61+
+     41	      63 68 20 6E 75 6D	62+
+     42	      65 72 20 69 73 20	65+
+     43	      6E 74 65 72 65 64	2E+
+     44	      0D 0A 00
+     45	0068  54 68 65 20 73 75	6D+	     msg2    db	     "The sum of the three numbers is :	" ,CR, LF, 0
+     46	      20 6F 66 20 74 68	65+
+     47	      20 74 68 72 65 65	20+
+     48	      6E 75 6D 62 65 72	73+
+     49	      20 69 73 20 3A 20	0D+
+     50	      0A 00
+     51
+     52	008D			     .code
+     53
+     54	0000			     Start:
+     55	0000  B8 0000s			     mov AX, @data
+     56	0003  8E D8			     mov ds, AX
+     57	0005  B9 0003			     mov CX, 03h
+Turbo Assembler	 Version 3.1	    07/05/02 13:53:36	    Page 2
+lab2.ASM
+
+
+
+     58
+     59	0008			     PrtDisp:
+     60	0008  50 55 8B EC C7 46	02+	     push offset msg1			     ; Stores the message location on the stack
+     61	      0018r 5D
+     62	0012  E8 0040			     call NewLine			     ; Displays	a new line
+     63	0015  E8 0072			     call PUTSTR				     ; Displays	program	description string
+     64	0018  E8 003A			     call NewLine			     ; Displays	a new line
+     65
+     66	001B			     GetNums:
+     67	001B  50 55 8B EC C7 46	02+	     push offset prompt			     ; Stores the message location on the stack
+     68	      0002r 5D
+     69	0025  E8 0062			     call PUTSTR				     ; Displays	input prompt
+     70	0028  E8 0037			     call GETSTR
+     71	002B  E8 0078			     call ATOI					     ; Converts	number string to an integer
+     72	002E  01 06 0000r		     add sum, AX
+     73	0032  49			     dec CX
+     74	0033  83 F9 00			     cmp CX, 00
+     75	0036  75 E3			     jne GetNums
+     76
+     77	0038			     PrtSum:
+     78	0038  50 55 8B EC C7 46	02+	     push offset msg2			     ; Stores the message location on the stack
+     79	      0068r 5D
+     80												     ;		     for the sum    +
+     81				     display
+     82	0042  E8 0045			     call PUTSTR				     ; Displays	input prompt
+     83	0045  FF 36 0000r		     push sum					     ; Save the	number in sum to the stack
+     84	0049  E8 00A9			     call ITOA					     ; Converts	number string to an integer
+     85				     ;	     mov number, DX
+     86	004C  FF 76 06			     push offset number
+     87	004F  E8 0038			     call PUTSTR
+     88	0052  E9 00EA			     jmp Prt
+     89
+     90
+     91	0055			     NewLine proc near
+     92	0055  B4 02			     mov ah, 02h			     ; print two newlines (i.e.	CR + LF	+ LF)
+     93	0057  B2 0D			     mov dl, CR
+     94	0059  CD 21			     int 21h
+     95	005B  B2 0A			     mov dl, LF
+     96	005D  CD 21			     int 21h
+     97	005F  CD 21			     int 21h
+     98	0061  C3			     ret
+     99
+    100	0062			     NewLine endp
+    101
+    102
+    103				     ;------------------------------------------------------------
+    104				     ; getstr -	read ASCII char	string from console keyboard; uses
+    105				     ;		DOS int	21h, function 1, to read chars & echo them
+    106				     ;		to screen
+    107				     ; entry condition:	 output	ASCII string address held in
+    108				     ;			 argument on stack
+    109				     ; exit condition:	entered	string null terminated and stored
+    110				     ;			at specified address
+    111				     ;
+    112
+    113	0062			     getstr proc near
+    114	0062  55			     push bp
+Turbo Assembler	 Version 3.1	    07/05/02 13:53:36	    Page 3
+lab2.ASM
+
+
+
+    115	0063  8B EC			     mov bp, sp
+    116	0065  53			     push bx
+    117	0066  50			     push ax
+    118	0067  52			     push dx
+    119
+    120	0068  8B 5E 04			     mov bx, string		     ; address of output string	[bp+4]
+    121	006B  B4 01			     mov ah, 01h			     ; use function 1 of INT 21h
+    122
+    123	006D			     GetLoop:
+    124	006D  CD 21			     int 21h				     ; wait for	char from keyboard
+    125	006F  3C 0D			     cmp al, CR				     ; end of input? (char = CR)
+    126	0071  74 05			     je	     GetEnd
+    127	0073  88 07			     mov [bx],al		     ; save char in string
+    128	0075  43			     inc bx				     ; point to	next char position
+    129	0076  EB F5			     jmp GetLoop
+    130
+    131	0078			     GetEnd:
+    132	0078  C6 07 00			     mov byte ptr [bx],	0    ; CR is converted to null
+    133	007B  B4 02			     mov ah, 02h			     ; print a newline (i.e. CR	+ LF)
+    134	007D  B2 0D			     mov dl, CR
+    135	007F  CD 21			     int 21h
+    136	0081  B2 0A			     mov dl, LF
+    137	0083  CD 21			     int 21h
+    138
+    139	0085  5A			     pop dx
+    140	0086  58			     pop ax
+    141	0087  5B			     pop bx
+    142	0088  5D			     pop bp
+    143	0089  C3			     ret
+    144
+    145	008A			     getstr endp
+    146
+    147
+    148				     ;------------------------------------------------------------
+    149				     ; putstr -	write ASCIIZ char string to console screen; uses
+    150				     ;		DOS int	21h, function 2, to send chars to screen
+    151				     ; entry condition:	 input ASCIIZ string address held in
+    152				     ;			 argument on stack
+    153				     ; exit condition:	none
+    154				     ;
+    155
+    156	008A			     putstr proc near
+    157
+    158	008A  55			     push bp
+    159	008B  8B EC			     mov bp, sp
+    160	008D  53			     push bx
+    161	008E  50			     push ax
+    162	008F  52			     push dx
+    163
+    164	0090  8B 5E 04			     mov bx, string		     ; address of input	string [bp+4]
+    165	0093  B4 02			     mov ah, 2
+    166
+    167	0095			     PrtLoop:
+    168	0095  80 3F 00			     cmp byte ptr [bx],	0    ; end of string?
+    169	0098  74 07			     je	PrtEnd
+    170	009A  8A 17			     mov dl, byte ptr [bx]   ; grab char from string
+    171	009C  CD 21			     int 21h				     ; send to screen
+Turbo Assembler	 Version 3.1	    07/05/02 13:53:36	    Page 4
+lab2.ASM
+
+
+
+    172	009E  43			     inc bx				     ; next char
+    173	009F  EB F4			     jmp PrtLoop
+    174
+    175	00A1			     PrtEnd:
+    176	00A1  5A			     pop dx
+    177	00A2  58			     pop ax
+    178	00A3  5B			     pop bx
+    179	00A4  5D			     pop bp
+    180	00A5  C3			     ret
+    181
+    182	00A6			     putstr endp
+    183
+    184
+    185				     ;------------------------------------------------------------
+    186				     ; atoi - Convert ASCIIZ char string to integer
+    187				     ; entry condition:	 output	value address held in first
+    188				     ;			 argument on stack, and	input ASCIIZ
+    189				     ;			 string	address	in second argument
+    190				     ; exit condition:	output value (word) stored at address in
+    191				     ;			first argument
+    192				     ;
+    193
+    194	00A6			     atoi proc near
+    195
+    196	00A6  55			     push bp
+    197	00A7  8B EC			     mov bp, sp
+    198	00A9  53			     push bx
+    199				     ;	     push ax
+    200	00AA  52			     push dx
+    201	00AB  56			     push si
+    202	00AC  57			     push di
+    203
+    204	00AD  BE 0000			     mov si, 0				     ; store sign in si: 0=+ and -1=-
+    205	00B0  8B 5E 04			     mov bx, string		     ; point to	input string
+    206	00B3  80 3F 2B			     cmp byte ptr [bx],	'+'  ; check for a + sign
+    207	00B6  75 03			     jne checkNeg		     ; if no +,	check for a - sign
+    208	00B8  43			     inc bx				     ; point to	first digit
+    209	00B9  EB 09			     jmp short firstDigit
+    210
+    211	00BB			     checkNeg:					     ; check for a - sign
+    212	00BB  80 3F 2D			     cmp byte ptr [bx],	'-'
+    213	00BE  75 04			     jne firstDigit		     ; if no -,	start conversion
+    214	00C0  BE FFFF			     mov si, -1				     ; if - sign, set si to -1
+    215	00C3  43			     inc bx				     ; point to	first digit
+    216
+    217	00C4			     firstDigit:			     ; start conversion
+    218	00C4  B8 0000			     mov ax, 0
+    219	00C7  BF 000A			     mov di, 10				     ; load number base	into di
+    220
+    221	00CA			     convertLoop1:
+    222	00CA  80 3F 30			     cmp byte ptr [bx],	'0'  ; digit?
+    223	00CD  7C 14			     jl	     endConvert			     ; (assumes	null terminator)
+    224	00CF  80 3F 39			     cmp byte ptr [bx],	'9'
+    225	00D2  7F 0F			     jg	     endConvert
+    226	00D4  F7 E7			     mul di
+    227	00D6  BA 0000			     mov dx, 0
+    228	00D9  8A 17			     mov dl, [bx]		     ; move contents of	bx to dl
+Turbo Assembler	 Version 3.1	    07/05/02 13:53:36	    Page 5
+lab2.ASM
+
+
+
+    229	00DB  80 EA 30			     sub dl, '0'		     ; convert ASCII code to digit value
+    230	00DE  03 C2			     add ax, dx
+    231	00E0  43			     inc bx				     ; point to	next digit
+    232	00E1  EB E7			     jmp convertLoop1
+    233
+    234	00E3			     endConvert:
+    235	00E3  83 FE 00			     cmp si, 0				     ; check sign flag
+    236	00E6  74 02			     je	     notNeg
+    237	00E8  F7 D8			     neg ax				     ; make number negative
+    238
+    239	00EA			     notNeg:					     ; done
+    240	00EA  8B 5E 06			     mov bx, number
+    241	00ED  89 07			     mov word ptr [bx],	ax
+    242
+    243	00EF  5F			     pop di
+    244	00F0  5E			     pop si
+    245	00F1  5A			     pop dx
+    246				     ;	     pop ax
+    247	00F2  5B			     pop bx
+    248	00F3  5D			     pop bp
+    249	00F4  C3			     ret
+    250
+    251	00F5			     atoi endp
+    252
+    253
+    254				     ;------------------------------------------------------------
+    255				     ; itoa - Convert integer to ASCIIZ	char string
+    256				     ; entry condition:	 input integer address held in first
+    257				     ;			 argument on stack, and	output string
+    258				     ;			 address in second argument
+    259				     ; exit condition:	output (ASCIIZ string) stored at address
+    260				     ;			in second argument
+    261				     ;
+    262
+    263	00F5			     itoa proc near
+    264
+    265	00F5  55			     push bp
+    266	00F6  8B EC			     mov bp, sp
+    267	00F8  53			     push bx
+    268	00F9  50			     push ax
+    269	00FA  52			     push dx
+    270	00FB  51			     push cx
+    271	00FC  56			     push si
+    272	00FD  57			     push di
+    273
+    274	00FE  8B 5E 06			     mov bx, number
+    275	0101  8B 07			     mov ax, word ptr [bx]   ; ax contains integer to convert
+    276	0103  8B 5E 04			     mov bx, string		     ; point to	output buffer
+    277
+    278	0106  3D 0000			     cmp ax, 0				     ; check for sign
+    279	0109  7D 06			     jge notNegative		     ; if ax >=	0 number is positive
+    280	010B  F7 D8			     neg ax				     ; ax < 0, make positive to	work with
+    281	010D  C6 07 2D			     mov byte ptr [bx],	'-'  ; store - sign for	negative number
+    282	0110  43			     inc bx				     ; point to	next character
+    283
+    284	0111			     notNegative:			     ; start conversion
+    285	0111  50			     push ax				     ; preserve	value of number
+Turbo Assembler	 Version 3.1	    07/05/02 13:53:36	    Page 6
+lab2.ASM
+
+
+
+    286	0112  BF 000A			     mov di, 10				     ; operand for division
+    287	0115  B9 0000			     mov cx, 0				     ; cx holds	number of digits found
+    288
+    289	0118			     countDigits:
+    290	0118  BA 0000			     mov dx, 0
+    291	011B  41			     inc cx				     ; increment number	of digits
+    292	011C  F7 F7			     div di				     ; div ax by di leaving quotient in	ax
+    293	011E  3D 0000			     cmp ax, 0
+    294	0121  75 F5			     jne countDigits
+    295	0123  58			     pop ax				     ; restore original	number
+    296
+    297	0124			     convert:
+    298	0124  03 D9			     add bx, cx				     ; set bx to end of	string + 1
+    299	0126  C6 07 00			     mov byte ptr [bx],	0    ; terminate ASCII string
+    300	0129  4B			     dec bx
+    301
+    302	012A			     convertLoop2:
+    303	012A  BA 0000			     mov dx, 0
+    304	012D  F7 F7			     div di
+    305	012F  83 C2 30			     add dx, '0'		     ; convert digit value to ASCII code
+    306	0132  88 17			     mov [bx], dl		     ; store ASCII value of digit
+    307	0134  4B			     dec bx				     ; point to	previous character
+    308	0135  E2 F3			     loop convertLoop2
+    309
+    310	0137  5F			     pop di
+    311	0138  5E			     pop si
+    312	0139  59			     pop cx
+    313	013A  5A			     pop dx
+    314	013B  58			     pop ax
+    315	013C  5B			     pop bx
+    316	013D  5D			     pop bp
+    317	013E  C3			     ret
+    318
+    319	013F			     itoa endp
+    320
+    321
+    322	013F			     Prt:
+    323	013F  B4 02			     mov ah, 02h
+    324	0141  8B 16 0000r		     mov dx, sum
+    325	0145  CD 21			     int 21h
+    326	0147  EB 01 90			     jmp Finished
+    327
+    328
+    329	014A			     Finished:
+    330	014A  B8 4C00			     mov ax, 4C00h		     ;terminate	program	with 00h in
+    331	014D  CD 21			     int 21h				     ;	     AL	as the "return code"
+    332
+    333				     end Start
+Turbo Assembler	 Version 3.1	    07/05/02 13:53:36	    Page 7
+Symbol Table
+
+
+
+
+Symbol Name			  Type	 Value
+
+??DATE				  Text	 "07/05/02"
+??FILENAME			  Text	 "lab2	  "
+??TIME				  Text	 "13:53:36"
+??VERSION			  Number 030A
+@32BIT				  Text	 0
+@CODE				  Text	 _TEXT
+@CODESIZE			  Text	 0
+@CPU				  Text	 0101H
+@CURSEG				  Text	 _TEXT
+@DATA				  Text	 DGROUP
+@DATASIZE			  Text	 0
+@FILENAME			  Text	 LAB2
+@INTERFACE			  Text	 00H
+@MODEL				  Text	 2
+@STACK				  Text	 DGROUP
+@WORDSIZE			  Text	 2
+ATOI				  Near	 _TEXT:00A6
+CHECKNEG			  Near	 _TEXT:00BB
+CONVERT				  Near	 _TEXT:0124
+CONVERTLOOP1			  Near	 _TEXT:00CA
+CONVERTLOOP2			  Near	 _TEXT:012A
+COUNTDIGITS			  Near	 _TEXT:0118
+CR				  Number 000D
+ENDCONVERT			  Near	 _TEXT:00E3
+FINISHED			  Near	 _TEXT:014A
+FIRSTDIGIT			  Near	 _TEXT:00C4
+GETEND				  Near	 _TEXT:0078
+GETLOOP				  Near	 _TEXT:006D
+GETNUMS				  Near	 _TEXT:001B
+GETSTR				  Near	 _TEXT:0062
+ITOA				  Near	 _TEXT:00F5
+LEN				  Number 000F
+LF				  Number 000A
+MSG1				  Byte	 DGROUP:0018
+MSG2				  Byte	 DGROUP:0068
+NEWLINE				  Near	 _TEXT:0055
+NOTNEG				  Near	 _TEXT:00EA
+NOTNEGATIVE			  Near	 _TEXT:0111
+NUMBER				  Text	 [bp+6]
+PROMPT				  Byte	 DGROUP:0002
+PRT				  Near	 _TEXT:013F
+PRTDISP				  Near	 _TEXT:0008
+PRTEND				  Near	 _TEXT:00A1
+PRTLOOP				  Near	 _TEXT:0095
+PRTSUM				  Near	 _TEXT:0038
+PUTSTR				  Near	 _TEXT:008A
+START				  Near	 _TEXT:0000
+STRING				  Text	 [bp+4]
+SUM				  Word	 DGROUP:0000
+Turbo Assembler	 Version 3.1	    07/05/02 13:53:36	    Page 8
+Symbol Table
+
+
+
+
+Groups & Segments		  Bit Size Align  Combine Class
+
+DGROUP				  Group
+  STACK				  16  0100 Para	  Stack	  STACK
+  _DATA				  16  008D Word	  Public  DATA
+_TEXT				  16  014F Word	  Public  CODE
+
